@@ -122,7 +122,7 @@ def get_link(map_val):#일별 기사 페이지 링크를 추출함
                     #저장태그
                     #100273_media_20200101_headline_2_link
                     headline = link.find_all('a')[-1].text.replace("\n", '')
-                    p = re.compile('[가-힣]+')
+                    p = re.compile('[가-힣|a-z|0-9]+')
                     headline = " ".join(p.findall(headline))
                     link_set.append(datas['sid1']+datas['sid2']+"_"+media+"_"+datas['date']+"_"+headline+"_"+datas['page']+"_"+link.find('a')['href'])
 

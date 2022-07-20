@@ -152,8 +152,8 @@ def get_article(map_val):#return list
             #월별로 나눠진 폴더에 저장
             output = open(output_path + "/" + line[2], "a", encoding='utf-8')
             #저장된 링크를 통한 기사 크롤링
-            #print(line[4].replace("\n", ''))
-            html = get_html(line[4].replace("\n", ''))#끝부분 줄바꿈문자 제거
+            #print(line[5].replace("\n", ''))
+            html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
 
 
             #사진 설명 삭제
@@ -166,9 +166,9 @@ def get_article(map_val):#return list
             doc = None
 
             #100273_media_20200101_headline_2_link
-            output.write(line[2]) + "\t")#날짜
-            output.write(line[0]) + "\t")#분류
-            output.write(line[1]) + "\t")#신문사
+            output.write(line[2] + "\t")#날짜
+            output.write(line[0] + "\t")#분류
+            output.write(line[1] + "\t")#신문사
             output.write(line[3] + "\t")#헤드라인
 
             for item in soup.find_all('div', id='dic_area'):
@@ -194,7 +194,7 @@ def get_article(map_val):#return list
                 print(line)
                 errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
                 errorlog.write('UnicodeEncodeError : ')
-                errorlog.write(line[4][:-1] + '\n')
+                errorlog.write(line[5][:-1] + '\n')
                 errorlog.close()
                 errcnt += 1
             except SyntaxError as syntx: #id가 다른 기사가 존재함
@@ -202,17 +202,17 @@ def get_article(map_val):#return list
                 try:
                     for item in soup.find_all('div', id='articleBodyContents'):
 
-                    text = text + str(item.find_all(text=True))
+                        text = text + str(item.find_all(text=True))
 
-                    text = ast.literal_eval(text)
+                        text = ast.literal_eval(text)
 
-                    doc = text_cleaning(text[8:], line[1])#본문 내 언론사 삭제
+                        doc = text_cleaning(text[8:], line[1])#본문 내 언론사 삭제
 
-                    word_corpus = (' '.join(doc))
+                        word_corpus = (' '.join(doc))
 
-                    word_corpus = cut_tail(word_corpus)
+                        word_corpus = cut_tail(word_corpus)
 
-                    output.write(word_corpus + '\t')
+                        output.write(word_corpus + '\t')
 
                 except:
                     try:
@@ -251,7 +251,7 @@ def get_article(map_val):#return list
                             print(line)
                             errorlog = open(output_path + "/" + fname +"_err", "a")
                             errorlog.write('SyntaxError : ')
-                            errorlog.write(line[4][:-1] + '\n')
+                            errorlog.write(line[5][:-1] + '\n')
                             errorlog.close()
                             errcnt += 1
             except ValueError as val:
@@ -260,7 +260,7 @@ def get_article(map_val):#return list
                 print(line)
                 errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
                 errorlog.write(text)
-                errorlog.write(line[4][:-1] + '\n')
+                errorlog.write(line[5][:-1] + '\n')
                 errorlog.close()
                 errcnt += 1
             except:
@@ -269,7 +269,7 @@ def get_article(map_val):#return list
                 print(line)
                 errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
                 errorlog.write(text)
-                errorlog.write(line[4][:-1] + '\n')
+                errorlog.write(line[5][:-1] + '\n')
                 errorlog.close()
                 errcnt += 1
 
