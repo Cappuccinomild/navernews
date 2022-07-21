@@ -139,7 +139,7 @@ def get_link(map_val):#일별 기사 페이지 링크를 추출함
         fname = sid1+sid2+"_"+datas['date']+".txt"
 
 
-        f = open(dir+'/'+fname, "w")
+        f = open(dir+'/'+fname, "w", encoding = 'utf-8')
         f.write("\n".join(link_set))
         f.write("\n")
 

@@ -157,7 +157,7 @@ def extract_article(output_path, line, soup):
     print(fname)
     print(val)
     print(line)
-    errorlog = open(output_path + "/" + fname +"_err", "a")
+    errorlog = open(output_path + "/" + fname +"_err", "a", encoding='utf-8')
     errorlog.write('SyntaxError : ')
     errorlog.write(line[5][:-1] + '\n')
     errorlog.close()
@@ -189,7 +189,7 @@ def get_article(map_val):#return list
 
     for i in tqdm(range(len(link_set))):
         fname = link_set[i]
-        f = open(path + "/" + fname)
+        f = open(path + "/" + fname, "r", encoding = 'utf-8')
 
         #파일 형식
         #line -> #100273_media_20200101_headline_2_link
@@ -220,7 +220,8 @@ def get_article(map_val):#return list
             os.makedirs(output_path, exist_ok=True)
 
             #월별로 나눠진 폴더에 저장
-            output = open(output_path + "/" + line[2] + ".txt", "a", encoding='utf-8')
+            #20220701_신문사_일련번호
+            output = open(output_path + "/" + line[2] + "_".join([line[1], line[0] + str(i)]) + ".txt", "a", encoding='utf-8')
             #저장된 링크를 통한 기사 크롤링
             #print(line[5].replace("\n", ''))
             html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
