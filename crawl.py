@@ -10,7 +10,7 @@ import sys
 import re
 
 #언론사
-newspaper = open("언론사.txt", encoding = 'utf-8').read().split(" ")
+newspaper = open("언론사.txt", encoding = 'utf-8').read().replace('\ufeff','').split(" ")
 
 def str_to_date(input):#yyyymmdd 문자열을 datetime 객체로 변경
     #                             yyyy              mm              dd
@@ -122,8 +122,13 @@ def get_link(map_val):#일별 기사 페이지 링크를 추출함
                     #저장태그
                     #100273_media_20200101_headline_2_link
                     headline = link.find_all('a')[-1].text.replace("\n", '')
-                    p = re.compile('[가-힣|a-z|0-9]+')
-                    headline = " ".join(p.findall(headline))
+                    #앞쪽 공백 삭제
+                    p = re.compile('[^\s|^\t|^\n].+')
+                    headline = "".join(p.findall(headline))
+
+                    #뒤쪽 공백 삭제
+                    p = re.compile('.+[^\s|^\t|^\n]')
+                    headline = "".join(p.findall(headline))
                     link_set.append(datas['sid1']+datas['sid2']+"_"+media+"_"+datas['date']+"_"+headline+"_"+datas['page']+"_"+link.find('a')['href'])
 
 

@@ -10,7 +10,7 @@ import math
 import sys
 from tqdm import tqdm
 
-newspaper = open("언론사.txt", encoding = 'utf-8').read().split(" ")
+newspaper = open("언론사.txt", encoding = 'utf-8').read().replace('\ufeff','').split(" ")
 
 # 텍스트 정제 함수
 def text_cleaning(text, office):
