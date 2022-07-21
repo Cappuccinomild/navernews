@@ -187,6 +187,7 @@ def get_article(map_val):#return list
         if date_s >= fdate and fdate >= date_e:
             link_set.append(fname)
 
+    line_cnt = 0
     for i in tqdm(range(len(link_set))):
         fname = link_set[i]
         f = open(path + "/" + fname, "r", encoding = 'utf-8')
@@ -194,6 +195,7 @@ def get_article(map_val):#return list
         #파일 형식
         #line -> #100273_media_20200101_headline_2_link
         line = f.readline()
+        link_cnt = 0
         while line:
 
             if not line:
@@ -221,7 +223,7 @@ def get_article(map_val):#return list
 
             #월별로 나눠진 폴더에 저장
             #20220701_신문사_일련번호
-            output = open(output_path + "/" + line[2] + "_".join([line[1], line[0] + str(i)]) + ".txt", "a", encoding='utf-8')
+            output = open(output_path + "/" + line[2] + "_".join([line[1], line[0] + str(link_cnt)]) + ".txt", "a", encoding='utf-8')
             #저장된 링크를 통한 기사 크롤링
             #print(line[5].replace("\n", ''))
             html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
@@ -256,8 +258,9 @@ def get_article(map_val):#return list
             output.write(line[-1])
             output.close()
             line = f.readline()
+            link_cnt += 1
 
-    total = len(link_set)
+    total = link_cnt
     print(sid1 + sid2 + " : " + str(total - errcnt)+ "/" + str(total))
     f.close()
 
@@ -323,7 +326,7 @@ if __name__ == '__main__':
             days = (date_s - date_e).days
 
             #process의 개수
-            N = 10
+            N = 3
 
             temp_e = []
             for i in range(0,days, math.ceil(days/N)):
