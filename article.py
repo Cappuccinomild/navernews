@@ -15,35 +15,38 @@ newspaper = open("언론사.txt", encoding = 'utf-8').read().split(" ")
 # 텍스트 정제 함수
 def text_cleaning(text, office):
 
+    text = " ".join(text)
+    #앞쪽 공백 삭제
+    p = re.compile('[^\s|^\t|^\n].+')
+    text = "".join(p.findall(text))
+
+    #뒤쪽 공백 삭제
+    p = re.compile('.+[^\s|^\t|^\n]')
+    text = "".join(p.findall(text))
+
     author = r'[(]?\w{2,4}[ ]?기자[)]?'
 
-    result_list = []
+    #cleaned_text = re.sub('[a-zA-Z]', '', item)
+    p = re.compile('[([]'+office+'[])]')
+    cleaned_text = p.sub('', text)#신문사 삭제
+    cleaned_text = cleaned_text.replace('[', '')
+    cleaned_text = cleaned_text.replace(']', '')
+    cleaned_text = cleaned_text.replace('\n', '')#엔터 삭제
+    cleaned_text = re.sub(author, '', cleaned_text)#기자이름 삭제
 
-    for item in text:
-        #cleaned_text = re.sub('[a-zA-Z]', '', item)
-        p = re.compile('[([]'+office+'[])]')
-        cleaned_text = p.sub('', item)#신문사 삭제
-        cleaned_text = cleaned_text.replace('[', '')
-        cleaned_text = cleaned_text.replace(']', '')
-        cleaned_text = cleaned_text.replace('\n', '')#엔터 삭제
-        cleaned_text = re.sub(author, '', cleaned_text)#기자이름 삭제
-
-        result_list.append(cleaned_text)
-
-    return result_list
+    return cleaned_text
 
 def cut_tail(word_corpus):
 
     if('@' in word_corpus):#이메일 삭제
-        word_corpus = re.sub('\w+[@].+', '', word_corpus)
+        word_corpus = re.sub('\w+[@].+?[\s]', '', word_corpus)
 
     elif('ⓒ' in word_corpus):
-        word_corpus = re.sub('\w+[ⓒ].+', '', word_corpus)
+        word_corpus = re.sub('\w+[ⓒ].+[\s]', '', word_corpus)
 
     word_corpus = word_corpus[:word_corpus.rfind('.')+1]
 
     return word_corpus
-
 
 def str_to_date(input):#yyyymmdd 문자열을 datetime 객체로 변경
     #                             yyyy              mm              dd
@@ -93,6 +96,73 @@ def get_html(url):
 
     return _html
 
+def extract_article(output_path, line, soup):
+
+    text = ''
+    img_desc = []
+    doc = None
+
+    i = 0
+    tag_list = ['dic_area','articleBodyContents', 'articleBody', 'newsEndContents', 'newsct_article']
+
+    while i < len(tag_list):
+        try:
+            for item in soup.find_all('div', id=tag_list[i]):
+                text = text + str(item.find_all(text=True))
+
+                text = ast.literal_eval(text)
+
+                doc = text_cleaning(text, line[1])#본문 내 언론사 삭제
+
+                word_corpus = cut_tail(doc)
+
+                return word_corpus
+
+        #div id가 다른 기사가 존재할 경우 i를 증가시키며 탐색
+        except SyntaxError as syntx:
+            i = i + 1
+
+        #오류 예외처리
+        except UnicodeEncodeError as encode:
+            print(fname)
+            print(encode)
+            print(line)
+            errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
+            errorlog.write('UnicodeEncodeError : ')
+            errorlog.write(line[5][:-1] + '\n')
+            errorlog.close()
+            return False
+
+        except ValueError as val:
+            print(fname)
+            print(val)
+            print(line)
+            errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
+            errorlog.write(text)
+            errorlog.write(line[5][:-1] + '\n')
+            errorlog.close()
+            return False
+
+        except:
+            print(fname)
+            print("unexpect")
+            print(line)
+            errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
+            errorlog.write(text)
+            errorlog.write(line[5][:-1] + '\n')
+            errorlog.close()
+            return False
+
+    #일치하는 패턴이 없는경우
+    print(fname)
+    print(val)
+    print(line)
+    errorlog = open(output_path + "/" + fname +"_err", "a")
+    errorlog.write('SyntaxError : ')
+    errorlog.write(line[5][:-1] + '\n')
+    errorlog.close()
+    return False
+
 
 #기사 본문 추출
 def get_article(map_val):#return list
@@ -122,7 +192,7 @@ def get_article(map_val):#return list
         f = open(path + "/" + fname)
 
         #파일 형식
-        #line -> sid1sid2_언론사_날짜_페이지_기사링크
+        #line -> #100273_media_20200101_headline_2_link
         line = f.readline()
         while line:
 
@@ -150,7 +220,7 @@ def get_article(map_val):#return list
             os.makedirs(output_path, exist_ok=True)
 
             #월별로 나눠진 폴더에 저장
-            output = open(output_path + "/" + line[2], "a", encoding='utf-8')
+            output = open(output_path + "/" + line[2] + ".txt", "a", encoding='utf-8')
             #저장된 링크를 통한 기사 크롤링
             #print(line[5].replace("\n", ''))
             html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
@@ -161,9 +231,7 @@ def get_article(map_val):#return list
 
             # 각 기사에서 텍스트만 정제하여 추출
             soup = BeautifulSoup(html, 'lxml')
-            text = ''
-            img_desc = []
-            doc = None
+
 
             #100273_media_20200101_headline_2_link
             output.write(line[2] + "\t")#날짜
@@ -171,111 +239,20 @@ def get_article(map_val):#return list
             output.write(line[1] + "\t")#신문사
             output.write(line[3] + "\t")#헤드라인
 
-            for item in soup.find_all('div', id='dic_area'):
+            word_corpus = extract_article(output_path, line, soup)
 
-                text = text + str(item.find_all(text=True))
-            try:
+            #본문을 추출한 경우
+            if word_corpus:
+                output.write(word_corpus + '\t')#본문 내용
 
-                text = ast.literal_eval(text)
-
-                doc = text_cleaning(text[8:], line[1])#본문 내 언론사 삭제
-
-                word_corpus = (' '.join(doc))
-
-                word_corpus = cut_tail(word_corpus)
-
-                #본문
-                output.write(word_corpus + '\t')
-
-            #오류 예외처리
-            except UnicodeEncodeError as encode:
-                print(fname)
-                print(encode)
-                print(line)
-                errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
-                errorlog.write('UnicodeEncodeError : ')
-                errorlog.write(line[5][:-1] + '\n')
-                errorlog.close()
-                errcnt += 1
-            except SyntaxError as syntx: #id가 다른 기사가 존재함
-
-                try:
-                    for item in soup.find_all('div', id='articleBodyContents'):
-
-                        text = text + str(item.find_all(text=True))
-
-                        text = ast.literal_eval(text)
-
-                        doc = text_cleaning(text[8:], line[1])#본문 내 언론사 삭제
-
-                        word_corpus = (' '.join(doc))
-
-                        word_corpus = cut_tail(word_corpus)
-
-                        output.write(word_corpus + '\t')
-
-                except:
-                    try:
-                        for item in soup.find_all('div', id='articleBody'):
-
-                            text = text + str(item.find_all(text=True))
-
-                            text = ast.literal_eval(text)
-
-                            doc = text_cleaning(text[8:], line[1])#본문 내 언론사 삭제
-
-                            word_corpus = (' '.join(doc))
-
-                            word_corpus = cut_tail(word_corpus)
-
-                            output.write(word_corpus + '\t')
-
-                    except:
-                        try:
-                            for item in soup.find_all('div', id='newsEndContents'):
-
-                                text = text + str(item.find_all(text=True))
-
-                                text = ast.literal_eval(text)
-
-                                doc = text_cleaning(text[8:], line[1])#본문 내 언론사 삭제
-
-                                word_corpus = (' '.join(doc))
-
-                                word_corpus = cut_tail(word_corpus)
-
-                                output.write(word_corpus + '\t')
-                        except:
-                            print(fname)
-                            print(val)
-                            print(line)
-                            errorlog = open(output_path + "/" + fname +"_err", "a")
-                            errorlog.write('SyntaxError : ')
-                            errorlog.write(line[5][:-1] + '\n')
-                            errorlog.close()
-                            errcnt += 1
-            except ValueError as val:
-                print(fname)
-                print(val)
-                print(line)
-                errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
-                errorlog.write(text)
-                errorlog.write(line[5][:-1] + '\n')
-                errorlog.close()
-                errcnt += 1
-            except:
-                print(fname)
-                print("unexpect")
-                print(line)
-                errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
-                errorlog.write(text)
-                errorlog.write(line[5][:-1] + '\n')
-                errorlog.close()
-                errcnt += 1
+            #본문을 추출하지 못한경우
+            else:
+                errcnt+=1
+                continue
 
             #기사링크 저장
             #100273_media_20200101_headline_2_link
-            output.write(line[-1] + "\n\n")
+            output.write(line[-1])
             output.close()
             line = f.readline()
 
@@ -321,12 +298,13 @@ if __name__ == '__main__':
     }
 
 
-    #디렉토리 생성
+    #언론사 디렉토리 생성
+    '''
     for media in newspaper:
         for sid1 in sid.keys():
             for sid2 in sid[sid1]:
                 os.makedirs("./" + media + "/" + sid1 + "/" + sid1 + sid2, exist_ok=True)
-
+    '''
 
     date_s = date_s.split("-")
     date_e = date_e.split("-")
