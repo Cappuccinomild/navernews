@@ -105,62 +105,41 @@ def extract_article(output_path, line, soup):
     i = 0
     tag_list = ['dic_area','articleBodyContents', 'articleBody', 'newsEndContents', 'newsct_article']
 
-    while i < len(tag_list):
+    for tags in tag_list:
         try:
-            for item in soup.find_all('div', id=tag_list[i]):
-                text = text + str(item.find_all(text=True))
+            if soup.find_all('div', id=tags):
+                for item in soup.find_all('div', id=tags):
+                    text = text + str(item.find_all(text=True))
 
-                text = ast.literal_eval(text)
+                    text = ast.literal_eval(text)
 
-                doc = text_cleaning(text, line[1])#본문 내 언론사 삭제
+                    text = "".join(text)
+                    #앞쪽 공백 삭제
+                    p = re.compile('[^\s|^\t|^\n].+')
+                    text = "".join(p.findall(text))
 
-                word_corpus = cut_tail(doc)
+                    #뒤쪽 공백 삭제
+                    p = re.compile('.+[^\s|^\t|^\n]')
+                    text = "".join(p.findall(text))
 
-                return word_corpus
+                    '''
+                    doc = text_cleaning(text, line[1])#본문 내 언론사 삭제
 
-        #div id가 다른 기사가 존재할 경우 i를 증가시키며 탐색
-        except SyntaxError as syntx:
-            i = i + 1
+                    word_corpus = cut_tail(doc)
 
-        #오류 예외처리
-        except UnicodeEncodeError as encode:
-            print(fname)
-            print(encode)
-            print(line)
-            errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
-            errorlog.write('UnicodeEncodeError : ')
-            errorlog.write(line[5][:-1] + '\n')
-            errorlog.close()
-            return False
+                    return word_corpus
+                    '''
 
-        except ValueError as val:
-            print(fname)
-            print(val)
-            print(line)
-            errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
-            errorlog.write(text)
-            errorlog.write(line[5][:-1] + '\n')
-            errorlog.close()
-            return False
+                    return text
 
         except:
-            print(fname)
-            print("unexpect")
+            print("bs4 err")
             print(line)
-            errorlog = open(output_path + "/" + line[2], "a", encoding='utf-8')
-            errorlog.write(text)
-            errorlog.write(line[5][:-1] + '\n')
-            errorlog.close()
             return False
 
     #일치하는 패턴이 없는경우
-    print(fname)
-    print(val)
+    print("패턴 불일치")
     print(line)
-    errorlog = open(output_path + "/" + fname +"_err", "a", encoding='utf-8')
-    errorlog.write('SyntaxError : ')
-    errorlog.write(line[5][:-1] + '\n')
-    errorlog.close()
     return False
 
 
@@ -195,7 +174,6 @@ def get_article(map_val):#return list
         #파일 형식
         #line -> #100273_media_20200101_headline_2_link
         line = f.readline()
-        link_cnt = 0
         while line:
 
             if not line:
@@ -207,9 +185,9 @@ def get_article(map_val):#return list
                 line = line.split("_")
             except:
                 print("------------------ split err ------------------")
+
                 print(line)
                 line = f.readline()
-                print(line)
                 continue
 
             #ex) line[2][:-4] = 2022
@@ -223,7 +201,7 @@ def get_article(map_val):#return list
 
             #월별로 나눠진 폴더에 저장
             #20220701_신문사_일련번호
-            output = open(output_path + "/" + line[2] + "_".join([line[1], line[0] + str(link_cnt)]) + ".txt", "a", encoding='utf-8')
+            output = open(output_path + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + ".txt", "a", encoding='utf-8')
             #저장된 링크를 통한 기사 크롤링
             #print(line[5].replace("\n", ''))
             html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
@@ -251,6 +229,17 @@ def get_article(map_val):#return list
             #본문을 추출하지 못한경우
             else:
                 errcnt+=1
+                output.close()
+
+                #output 파일 삭제
+                os.remove(output_path + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + ".txt")
+
+                #에러로그 작성
+                err = open(output_path + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + "_err.txt", "w", encoding='utf-8')
+                err.write("_".join(line))
+                err.close()
+
+                line = line.readline()
                 continue
 
             #기사링크 저장
@@ -258,9 +247,9 @@ def get_article(map_val):#return list
             output.write(line[-1])
             output.close()
             line = f.readline()
-            link_cnt += 1
+            line_cnt += 1
 
-    total = link_cnt
+    total = line_cnt
     print(sid1 + sid2 + " : " + str(total - errcnt)+ "/" + str(total))
     f.close()
 
@@ -326,7 +315,7 @@ if __name__ == '__main__':
             days = (date_s - date_e).days
 
             #process의 개수
-            N = 3
+            N = 6
 
             temp_e = []
             for i in range(0,days, math.ceil(days/N)):
