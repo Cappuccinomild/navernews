@@ -71,12 +71,9 @@ def get_html(url):
     hdr = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36 Edg/103.0.1264.49'}
     _html = ""
 
-    max_try = 20
-    cnt = 0
     while True:
 
         try:
-            cnt += 1
             resp = requests.get(url, headers = hdr, timeout=10)
 
         except requests.exceptions.Timeout as timeout:
@@ -94,12 +91,15 @@ def get_html(url):
             time.sleep(900)
             continue
 
+        except:
+            print('unexpect err')
+            print(url)
+            return _html
+
         if resp.status_code == 200:
             _html = resp.text
             break
 
-        if cnt == max_try:
-            return False
 
     return _html
 
