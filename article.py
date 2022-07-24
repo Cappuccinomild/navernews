@@ -71,10 +71,14 @@ def get_html(url):
     hdr = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36 Edg/103.0.1264.49'}
     _html = ""
 
+    max_try = 20
+    cnt = 0
     while True:
 
         try:
+            cnt += 1
             resp = requests.get(url, headers = hdr, timeout=10)
+
         except requests.exceptions.Timeout as timeout:
 
             print(timeout)
@@ -93,6 +97,9 @@ def get_html(url):
         if resp.status_code == 200:
             _html = resp.text
             break
+
+        if cnt == max_try:
+            return False
 
     return _html
 
@@ -206,7 +213,11 @@ def get_article(map_val):#return list
             #print(line[5].replace("\n", ''))
             html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
 
-
+            #html null
+            if not html:
+                print(line)
+                line = f.readline()
+                continue
             #사진 설명 삭제
             html = re.sub('<em class="img_desc.+?/em>', '', html)
 
@@ -239,7 +250,7 @@ def get_article(map_val):#return list
                 err.write("_".join(line))
                 err.close()
 
-                line = line.readline()
+                line = f.readline()
                 continue
 
             #기사링크 저장
