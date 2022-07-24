@@ -110,7 +110,7 @@ def extract_article(output_path, line, soup):
     doc = None
 
     i = 0
-    tag_list = ['dic_area','articleBodyContents', 'articleBody', 'newsEndContents', 'newsct_article']
+    tag_list = ['dic_area','articleBodyContents', 'articleBody', 'newsEndContents', 'newsct_article', 'articeBody', ]
 
     for tags in tag_list:
         try:
@@ -192,8 +192,8 @@ def get_article(map_val):#return list
                 line = line.split("_")
             except:
                 print("------------------ split err ------------------")
-
                 print(line)
+                errcnt += 1
                 line = f.readline()
                 continue
 
@@ -215,8 +215,17 @@ def get_article(map_val):#return list
 
             #html null
             if not html:
+                print("unexpect err")
                 print(line)
+                errcnt += 1
                 line = f.readline()
+
+                #에러로그 작성
+                os.makedirs(output_path + "/" + "err", exist_ok=True)
+                err = open(output_path + "/" + "err" + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + "_err.txt", "w", encoding='utf-8')
+                err.write(line)
+                err.close()
+
                 continue
             #사진 설명 삭제
             html = re.sub('<em class="img_desc.+?/em>', '', html)
@@ -246,6 +255,7 @@ def get_article(map_val):#return list
                 os.remove(output_path + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + ".txt")
 
                 #에러로그 작성
+                os.makedirs(output_path + "/" + "err", exist_ok=True)
                 err = open(output_path + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + "_err.txt", "w", encoding='utf-8')
                 err.write("_".join(line))
                 err.close()
