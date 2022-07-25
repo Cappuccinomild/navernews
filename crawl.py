@@ -68,6 +68,7 @@ def get_link(map_val):#일별 기사 페이지 링크를 추출함
 
         #페이지를 증가시키며 탐색
         link_set = []
+        retry_cnt = 0
         while True:
 
             try:
@@ -88,9 +89,23 @@ def get_link(map_val):#일별 기사 페이지 링크를 추출함
                 time.sleep(900)
                 continue
 
+            except:
+                print('unexpect err')
+                print("retry" + ":" + str(retry) + "_" + url)
+                retry_cnt += 1
+
+                #5회 이상 반복시 다음 페이지로 넘김
+                if retry_cnt == 5:
+                    #페이지 증가
+                    datas['page'] = str(int(datas['page']) + 1)
+                    retry_cnt = 0
+                    continue
+
+
             #html 추출
             if resp.status_code == 200:
                 _html = resp.text
+
 
             #페이지 파싱
             soup = BeautifulSoup(_html, 'lxml')

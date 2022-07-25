@@ -129,6 +129,8 @@ def extract_article(output_path, line, soup):
                     p = re.compile('.+[^\s|^\t|^\n]')
                     text = "".join(p.findall(text))
 
+                    text = text.replace('\t', ' ')
+
                     '''
                     doc = text_cleaning(text, line[1])#본문 내 언론사 삭제
 
@@ -256,7 +258,7 @@ def get_article(map_val):#return list
 
                 #에러로그 작성
                 os.makedirs(output_path + "/" + "err", exist_ok=True)
-                err = open(output_path + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + "_err.txt", "w", encoding='utf-8')
+                err = open(output_path + "/" + "err" + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + "_err.txt", "w", encoding='utf-8')
                 err.write("_".join(line))
                 err.close()
 
