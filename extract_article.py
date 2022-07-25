@@ -22,13 +22,13 @@ def search_keyword(map_val):
         keyword = keyword.split("&")
 
         #부정일 경우 keyword[1]에 0을 넣어줘서 부정임을 표시
-        for i in range(len(keyword)):
+        for j in range(len(keyword)):
             #부정일 경우
-            if "!" in keyword[i]:
-                keyword[i] = [re.compile(keyword[i].replace("!", '')), 0]
+            if "!" in keyword[j]:
+                keyword[j] = [re.compile(keyword[j].replace("!", '')), 0]
 
             else:
-                keyword[i] = [re.compile(keyword[i]), 1]
+                keyword[j] = [re.compile(keyword[j]), 1]
 
 
         f = open(fname, encoding = 'utf-8')
@@ -59,12 +59,11 @@ def search_keyword(map_val):
 
             #매칭되어 저장함
             if match:
-                line = line.split("\t")
-                line[4]
+
                 #map_val = [저장폴더 이름, 키워드, 탐색 폴더]
                 os.makedirs(output_dir, exist_ok = True)
                 output = open(output_dir + "/" + fname.split("\\")[-1], "a", encoding = "utf-8")
-                output.write(fname)
+                output.write(fname + "\t")
                 output.write(line)
                 output.close()
 
@@ -82,7 +81,7 @@ if __name__ == '__main__':
     while line:
         print(line)
 
-        #output folder name
+        #저장폴더 이름
         dirname = line.replace("&", "AND").replace("|", "OR").replace("\n", "")
         os.makedirs(dirname, exist_ok=True)
 
