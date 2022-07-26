@@ -223,7 +223,7 @@ def get_article(map_val):#return list
                 #에러로그 작성
                 os.makedirs(output_path + "/" + "err", exist_ok=True)
                 err = open(output_path + "/" + "err" + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + "_err.txt", "w", encoding='utf-8')
-                err.write(line)
+                err.write("_".join(line))
                 err.close()
 
                 errcnt += 1
