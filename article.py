@@ -71,6 +71,7 @@ def get_html(url):
     hdr = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36 Edg/103.0.1264.49'}
     _html = ""
 
+    cnt = 0
     while True:
 
         try:
@@ -100,6 +101,16 @@ def get_html(url):
             _html = resp.text
             break
 
+        elif resp.status_code == 404:
+            print("code : " + str(resp.status_code))
+            return _html
+        else:
+            print("not 200 retry : " + str(cnt))
+
+            if cnt == 10:
+                print("null page" + str(resp.status_code))
+                return _html
+            cnt += 1
 
     return _html
 
@@ -217,7 +228,7 @@ def get_article(map_val):#return list
 
             #html null
             if not html:
-                print("unexpect err")
+                print("html null : ", end='')
                 print(line)
 
                 #에러로그 작성
