@@ -8,6 +8,7 @@ import multiprocessing
 import os
 import math
 import sys
+import random
 from tqdm import tqdm
 
 newspaper = open("언론사.txt", encoding = 'utf-8').read().replace('\ufeff','').split(" ")
@@ -75,6 +76,7 @@ def get_html(url):
     while True:
 
         try:
+            time.sleep(random.randrange(5, 11)/100)
             resp = requests.get(url, headers = hdr, timeout=10)
 
         except requests.exceptions.Timeout as timeout:
@@ -224,7 +226,14 @@ def get_article(map_val):#return list
             output = open(output_path + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + ".txt", "a", encoding='utf-8')
             #저장된 링크를 통한 기사 크롤링
             #print(line[5].replace("\n", ''))
-            html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
+            try:
+                html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
+            except:
+                print("list index out of range")
+                print(line)
+                errcnt += 1
+                line = f.readline()
+                continue
 
             #html null
             if not html:
