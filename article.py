@@ -8,8 +8,8 @@ import multiprocessing
 import os
 import math
 import sys
-import random
 from tqdm import tqdm
+from fake_useragent import UserAgent
 
 newspaper = open("언론사.txt", encoding = 'utf-8').read().replace('\ufeff','').split(" ")
 
@@ -69,15 +69,15 @@ def date_to_str(input):
 
 def get_html(url):
 
-    hdr = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36 Edg/103.0.1264.49'}
+    ua = UserAgent()
+    headers = {'User-Agent' : ua.random}
     _html = ""
 
     cnt = 0
     while True:
 
         try:
-            time.sleep(random.randrange(5, 11)/100)
-            resp = requests.get(url, headers = hdr, timeout=10)
+            resp = requests.get(url, headers = headers, timeout=10)
 
         except requests.exceptions.Timeout as timeout:
 
@@ -226,14 +226,7 @@ def get_article(map_val):#return list
             output = open(output_path + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + ".txt", "a", encoding='utf-8')
             #저장된 링크를 통한 기사 크롤링
             #print(line[5].replace("\n", ''))
-            try:
-                html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
-            except:
-                print("list index out of range")
-                print(line)
-                errcnt += 1
-                line = f.readline()
-                continue
+            html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
 
             #html null
             if not html:
@@ -359,7 +352,7 @@ if __name__ == '__main__':
             days = (date_s - date_e).days
 
             #process의 개수
-            N = 6
+            N = 4
 
             temp_e = []
             for i in range(0,days, math.ceil(days/N)):
