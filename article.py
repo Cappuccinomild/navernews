@@ -212,6 +212,11 @@ def get_article(map_val):#return list
                 line = f.readline()
                 continue
 
+            if len(line) != 6:
+                print("------------------ split err ------------------")
+                print(line)
+                line = f.readline()
+                continue
             #ex) line[2][:-4] = 2022
             #ex) line[2][4:-2] = 07
 
@@ -226,7 +231,13 @@ def get_article(map_val):#return list
             output = open(output_path + "/" + "_".join([line[2], line[1], line[0] + str(line_cnt)]) + ".txt", "a", encoding='utf-8')
             #저장된 링크를 통한 기사 크롤링
             #print(line[5].replace("\n", ''))
-            html = get_html(line[5].replace("\n", ''))#끝부분 줄바꿈문자 제거
+            try:
+                html = get_html(line[-1].replace("\n", ''))#끝부분 줄바꿈문자 제거
+            except:
+                print("replace line err\n")
+                print(line)
+                line = f.readline()
+                continue
 
             #html null
             if not html:
@@ -285,10 +296,11 @@ def get_article(map_val):#return list
             output.close()
             line = f.readline()
             line_cnt += 1
-
+        f.close()
+    
     total = line_cnt
     print(sid1 + sid2 + " : " + str(total - errcnt)+ "/" + str(total))
-    f.close()
+
 
 
 if __name__ == '__main__':
